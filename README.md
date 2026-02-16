@@ -49,5 +49,5 @@ Point your Bubble Card `entity:` to the text sensor created by this integration 
 
 ---
 
-Repository: https://github.com/TU_USUARIO/smart_plant_watering
-Issues: https://github.com/TU_USUARIO/smart_plant_watering/issues
+Repository: https://github.com/xpitcl/smart-plant-watering
+Issues: https://github.com/xpitcl/smart-plant-watering/issues
