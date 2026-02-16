@@ -17,7 +17,8 @@
       }
     },
     "error": {
-      "not_numeric": "El sensor seleccionado no parece entregar un valor numérico."
+      "not_numeric": "El sensor seleccionado no parece entregar un valor numérico.",
+      "invalid_thresholds": "El umbral húmedo debe ser mayor al umbral seco."
     }
   },
   "options": {
@@ -38,7 +39,8 @@
       }
     },
     "error": {
-      "not_numeric": "El sensor seleccionado no parece entregar un valor numérico."
+      "not_numeric": "El sensor seleccionado no parece entregar un valor numérico.",
+      "invalid_thresholds": "El umbral húmedo debe ser mayor al umbral seco."
     }
   }
 }

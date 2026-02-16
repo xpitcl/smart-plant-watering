@@ -17,7 +17,8 @@
       }
     },
     "error": {
-      "not_numeric": "Selected sensor does not look numeric."
+      "not_numeric": "Selected sensor does not look numeric.",
+      "invalid_thresholds": "Wet threshold must be greater than dry threshold."
     }
   },
   "options": {
@@ -38,7 +39,8 @@
       }
     },
     "error": {
-      "not_numeric": "Selected sensor does not look numeric."
+      "not_numeric": "Selected sensor does not look numeric.",
+      "invalid_thresholds": "Wet threshold must be greater than dry threshold."
     }
   }
 }
