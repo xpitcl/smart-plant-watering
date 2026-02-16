@@ -142,11 +142,6 @@ class PlantWateringCoordinator:
         if self.mode == MODE_DELTA:
             delta = to_v - from_v
             if delta >= self.min_delta:
-                # Si el usuario definió umbrales, los usamos como "cruce" opcional
-                if self.dry_threshold and from_v >= self.dry_threshold:
-                    return
-                if self.wet_threshold and to_v < self.wet_threshold:
-                    return
                 should_trigger = True
 
         elif self.mode == MODE_THRESHOLD:
@@ -164,8 +159,8 @@ class PlantWateringCoordinator:
     async def _confirm_and_set(self, candidate: datetime) -> None:
         await asyncio.sleep(self.confirm_minutes * 60)
 
-        # Si hay wet_threshold, exigimos mantenerse "húmedo"
-        if self.wet_threshold:
+        # Solo en modo threshold exigimos mantenerse "húmedo".
+        if self.mode == MODE_THRESHOLD and self.wet_threshold:
             st = self.hass.states.get(self.moisture_entity)
             if not st or st.state in ("unknown", "unavailable"):
                 return

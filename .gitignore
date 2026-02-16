@@ -30,3 +30,7 @@ dist/
 .vscode/
 *.swp
 *.swo
+
+# Local developer helpers (machine-specific)
+scripts/deploy-dev.sh
+README.local.md
