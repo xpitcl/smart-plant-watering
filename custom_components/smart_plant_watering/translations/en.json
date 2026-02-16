@@ -18,6 +18,7 @@
     },
     "error": {
       "not_numeric": "Selected sensor does not look numeric.",
+      "invalid_minutes": "Cooldown and confirmation must be 0 or greater.",
       "invalid_thresholds": "Wet threshold must be greater than dry threshold."
     }
   },
@@ -40,6 +41,7 @@
     },
     "error": {
       "not_numeric": "Selected sensor does not look numeric.",
+      "invalid_minutes": "Cooldown and confirmation must be 0 or greater.",
       "invalid_thresholds": "Wet threshold must be greater than dry threshold."
     }
   }

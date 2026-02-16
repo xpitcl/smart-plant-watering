@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any, Dict
-
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.helpers import selector
@@ -27,77 +25,82 @@ from .const import (
 )
 
 
-def _schema(defaults: Dict[str, Any], mode: str) -> vol.Schema:
-    schema: Dict[vol.Marker, Any] = {
-        vol.Required(CONF_NAME, default=defaults.get(CONF_NAME, "")): str,
-        vol.Required(
-            CONF_MOISTURE_ENTITY, default=defaults.get(CONF_MOISTURE_ENTITY, "")
-        ): selector.EntitySelector(selector.EntitySelectorConfig(domain="sensor")),
-        vol.Required(CONF_MODE, default=mode): vol.In([MODE_DELTA, MODE_THRESHOLD]),
-        vol.Optional(
-            CONF_COOLDOWN_MINUTES,
-            default=int(defaults.get(CONF_COOLDOWN_MINUTES, DEFAULT_COOLDOWN_MINUTES)),
-        ): vol.Coerce(int),
-        vol.Optional(
-            CONF_CONFIRM_MINUTES,
-            default=int(defaults.get(CONF_CONFIRM_MINUTES, DEFAULT_CONFIRM_MINUTES)),
-        ): vol.Coerce(int),
-    }
-
-    if mode == MODE_DELTA:
-        schema[
+def _schema(defaults: dict) -> vol.Schema:
+    return vol.Schema(
+        {
+            vol.Required(CONF_NAME, default=defaults.get(CONF_NAME, "")): str,
+            vol.Required(
+                CONF_MOISTURE_ENTITY, default=defaults.get(CONF_MOISTURE_ENTITY, "")
+            ): selector.EntitySelector(selector.EntitySelectorConfig(domain="sensor")),
+            vol.Required(CONF_MODE, default=defaults.get(CONF_MODE, DEFAULT_MODE)): vol.In(
+                [MODE_DELTA, MODE_THRESHOLD]
+            ),
             vol.Optional(
                 CONF_MIN_DELTA,
                 default=float(defaults.get(CONF_MIN_DELTA, DEFAULT_MIN_DELTA)),
-            )
-        ] = vol.Coerce(float)
-    else:
-        schema[
-            vol.Required(
+            ): vol.Coerce(float),
+            vol.Optional(
                 CONF_DRY_THRESHOLD,
                 default=float(defaults.get(CONF_DRY_THRESHOLD, DEFAULT_DRY_THRESHOLD)),
-            )
-        ] = vol.Coerce(float)
-        schema[
-            vol.Required(
+            ): vol.Coerce(float),
+            vol.Optional(
                 CONF_WET_THRESHOLD,
                 default=float(defaults.get(CONF_WET_THRESHOLD, DEFAULT_WET_THRESHOLD)),
-            )
-        ] = vol.Coerce(float)
+            ): vol.Coerce(float),
+            vol.Optional(
+                CONF_COOLDOWN_MINUTES,
+                default=int(defaults.get(CONF_COOLDOWN_MINUTES, DEFAULT_COOLDOWN_MINUTES)),
+            ): vol.Coerce(int),
+            vol.Optional(
+                CONF_CONFIRM_MINUTES,
+                default=int(defaults.get(CONF_CONFIRM_MINUTES, DEFAULT_CONFIRM_MINUTES)),
+            ): vol.Coerce(int),
+        }
+    )
 
-    return vol.Schema(schema)
 
+def _validate_input(hass, user_input: dict) -> dict:
+    errors = {}
 
-def _entry_data_by_mode(data: Dict[str, Any]) -> Dict[str, Any]:
-    mode = data.get(CONF_MODE, DEFAULT_MODE)
-    cleaned = {
-        CONF_NAME: data[CONF_NAME],
-        CONF_MOISTURE_ENTITY: data[CONF_MOISTURE_ENTITY],
-        CONF_MODE: mode,
-        CONF_COOLDOWN_MINUTES: data.get(CONF_COOLDOWN_MINUTES, DEFAULT_COOLDOWN_MINUTES),
-        CONF_CONFIRM_MINUTES: data.get(CONF_CONFIRM_MINUTES, DEFAULT_CONFIRM_MINUTES),
-    }
+    st = hass.states.get(user_input[CONF_MOISTURE_ENTITY])
+    if st and st.state not in ("unknown", "unavailable"):
+        try:
+            float(st.state)
+        except ValueError:
+            errors["base"] = "not_numeric"
 
-    if mode == MODE_DELTA:
-        cleaned[CONF_MIN_DELTA] = data.get(CONF_MIN_DELTA, DEFAULT_MIN_DELTA)
-    else:
-        cleaned[CONF_DRY_THRESHOLD] = data.get(CONF_DRY_THRESHOLD, DEFAULT_DRY_THRESHOLD)
-        cleaned[CONF_WET_THRESHOLD] = data.get(CONF_WET_THRESHOLD, DEFAULT_WET_THRESHOLD)
+    if (
+        errors.get("base") is None
+        and (
+            int(user_input[CONF_COOLDOWN_MINUTES]) < 0
+            or int(user_input[CONF_CONFIRM_MINUTES]) < 0
+        )
+    ):
+        errors["base"] = "invalid_minutes"
 
-    return cleaned
+    if (
+        errors.get("base") is None
+        and user_input[CONF_MODE] == MODE_THRESHOLD
+        and float(user_input[CONF_WET_THRESHOLD]) <= float(user_input[CONF_DRY_THRESHOLD])
+    ):
+        errors["base"] = "invalid_thresholds"
+
+    return errors
 
 
 class SmartPlantWateringFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
-    _draft: Dict[str, Any]
-    _current_mode: str
-
-    def __init__(self) -> None:
-        self._draft = {}
-        self._current_mode = DEFAULT_MODE
 
     async def async_step_user(self, user_input=None):
         errors = {}
+
+        if user_input is not None:
+            await self.async_set_unique_id(user_input[CONF_MOISTURE_ENTITY])
+            self._abort_if_unique_id_configured()
+            errors = _validate_input(self.hass, user_input)
+
+            if not errors:
+                return self.async_create_entry(title=user_input[CONF_NAME], data=user_input)
 
         defaults = {
             CONF_NAME: "",
@@ -108,48 +111,7 @@ class SmartPlantWateringFlow(config_entries.ConfigFlow, domain=DOMAIN):
             CONF_COOLDOWN_MINUTES: DEFAULT_COOLDOWN_MINUTES,
             CONF_CONFIRM_MINUTES: DEFAULT_CONFIRM_MINUTES,
         }
-        defaults.update(self._draft)
-
-        if user_input is not None:
-            self._draft.update(user_input)
-            selected_mode = self._draft.get(CONF_MODE, DEFAULT_MODE)
-
-            if selected_mode != self._current_mode:
-                self._current_mode = selected_mode
-                return self.async_show_form(
-                    step_id="user",
-                    data_schema=_schema(self._draft, self._current_mode),
-                    errors=errors,
-                )
-
-            cleaned = _entry_data_by_mode(self._draft)
-
-            await self.async_set_unique_id(cleaned[CONF_MOISTURE_ENTITY])
-            self._abort_if_unique_id_configured()
-
-            st = self.hass.states.get(cleaned[CONF_MOISTURE_ENTITY])
-            if st and st.state not in ("unknown", "unavailable"):
-                try:
-                    float(st.state)
-                except ValueError:
-                    errors["base"] = "not_numeric"
-
-            if (
-                cleaned[CONF_MODE] == MODE_THRESHOLD
-                and float(cleaned[CONF_WET_THRESHOLD]) <= float(cleaned[CONF_DRY_THRESHOLD])
-            ):
-                errors["base"] = "invalid_thresholds"
-
-            if not errors:
-                return self.async_create_entry(title=cleaned[CONF_NAME], data=cleaned)
-
-        selected_mode = defaults.get(CONF_MODE, DEFAULT_MODE)
-        self._current_mode = selected_mode
-        return self.async_show_form(
-            step_id="user",
-            data_schema=_schema(defaults, selected_mode),
-            errors=errors,
-        )
+        return self.async_show_form(step_id="user", data_schema=_schema(defaults), errors=errors)
 
     @staticmethod
     def async_get_options_flow(config_entry: config_entries.ConfigEntry):
@@ -159,47 +121,17 @@ class SmartPlantWateringFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class SmartPlantWateringOptionsFlow(config_entries.OptionsFlow):
     def __init__(self, entry: config_entries.ConfigEntry) -> None:
         self.entry = entry
-        self._draft = dict(entry.data)
-        self._draft.update(entry.options)
-        self._current_mode = self._draft.get(CONF_MODE, DEFAULT_MODE)
 
     async def async_step_init(self, user_input=None):
         errors = {}
 
-        defaults = dict(self._draft)
+        defaults = dict(self.entry.data)
+        defaults.update(self.entry.options)
 
         if user_input is not None:
-            self._draft.update(user_input)
-            selected_mode = self._draft.get(CONF_MODE, DEFAULT_MODE)
-
-            if selected_mode != self._current_mode:
-                self._current_mode = selected_mode
-                return self.async_show_form(
-                    step_id="init",
-                    data_schema=_schema(self._draft, self._current_mode),
-                    errors=errors,
-                )
-
-            cleaned = _entry_data_by_mode(self._draft)
-
-            st = self.hass.states.get(cleaned[CONF_MOISTURE_ENTITY])
-            if st and st.state not in ("unknown", "unavailable"):
-                try:
-                    float(st.state)
-                except ValueError:
-                    errors["base"] = "not_numeric"
-
-            if (
-                cleaned[CONF_MODE] == MODE_THRESHOLD
-                and float(cleaned[CONF_WET_THRESHOLD]) <= float(cleaned[CONF_DRY_THRESHOLD])
-            ):
-                errors["base"] = "invalid_thresholds"
+            errors = _validate_input(self.hass, user_input)
 
             if not errors:
-                return self.async_create_entry(title="", data=cleaned)
+                return self.async_create_entry(title="", data=user_input)
 
-        return self.async_show_form(
-            step_id="init",
-            data_schema=_schema(defaults, self._current_mode),
-            errors=errors,
-        )
+        return self.async_show_form(step_id="init", data_schema=_schema(defaults), errors=errors)

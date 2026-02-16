@@ -1,7 +1,7 @@
 {
   "domain": "smart_plant_watering",
   "name": "Smart Plant Watering",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "documentation": "https://github.com/xpitcl/smart-plant-watering",
   "issue_tracker": "https://github.com/xpitcl/smart-plant-watering/issues",
   "requirements": [],
