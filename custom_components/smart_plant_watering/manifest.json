@@ -1,0 +1,12 @@
+{
+  "domain": "smart_plant_watering",
+  "name": "Smart Plant Watering",
+  "version": "1.0.0",
+  "documentation": "https://github.com/TU_USUARIO/smart_plant_watering",
+  "issue_tracker": "https://github.com/TU_USUARIO/smart_plant_watering/issues",
+  "requirements": [],
+  "dependencies": [],
+  "codeowners": ["@TU_USUARIO"],
+  "config_flow": true,
+  "iot_class": "local_push"
+}

@@ -1,0 +1,44 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Smart Plant Watering",
+        "description": "Configura detección de riego para una planta.",
+        "data": {
+          "name": "Nombre de la planta",
+          "moisture_entity": "Sensor de humedad",
+          "mode": "Modo de detección",
+          "min_delta": "Delta mínimo (solo modo Delta)",
+          "dry_threshold": "Umbral seco",
+          "wet_threshold": "Umbral húmedo",
+          "cooldown_minutes": "Cooldown (minutos)",
+          "confirm_minutes": "Confirmación (minutos)"
+        }
+      }
+    },
+    "error": {
+      "not_numeric": "El sensor seleccionado no parece entregar un valor numérico."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones",
+        "description": "Ajusta parámetros sin recrear la integración.",
+        "data": {
+          "name": "Nombre de la planta",
+          "moisture_entity": "Sensor de humedad",
+          "mode": "Modo de detección",
+          "min_delta": "Delta mínimo (solo modo Delta)",
+          "dry_threshold": "Umbral seco",
+          "wet_threshold": "Umbral húmedo",
+          "cooldown_minutes": "Cooldown (minutos)",
+          "confirm_minutes": "Confirmación (minutos)"
+        }
+      }
+    },
+    "error": {
+      "not_numeric": "El sensor seleccionado no parece entregar un valor numérico."
+    }
+  }
+}

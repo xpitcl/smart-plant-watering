@@ -1,0 +1,44 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Smart Plant Watering",
+        "description": "Configure watering detection for a plant.",
+        "data": {
+          "name": "Plant name",
+          "moisture_entity": "Moisture sensor",
+          "mode": "Detection mode",
+          "min_delta": "Minimum delta (Delta mode only)",
+          "dry_threshold": "Dry threshold",
+          "wet_threshold": "Wet threshold",
+          "cooldown_minutes": "Cooldown (minutes)",
+          "confirm_minutes": "Confirmation (minutes)"
+        }
+      }
+    },
+    "error": {
+      "not_numeric": "Selected sensor does not look numeric."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options",
+        "description": "Adjust settings without recreating the integration.",
+        "data": {
+          "name": "Plant name",
+          "moisture_entity": "Moisture sensor",
+          "mode": "Detection mode",
+          "min_delta": "Minimum delta (Delta mode only)",
+          "dry_threshold": "Dry threshold",
+          "wet_threshold": "Wet threshold",
+          "cooldown_minutes": "Cooldown (minutes)",
+          "confirm_minutes": "Confirmation (minutes)"
+        }
+      }
+    },
+    "error": {
+      "not_numeric": "Selected sensor does not look numeric."
+    }
+  }
+}
