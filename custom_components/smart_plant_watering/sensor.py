@@ -127,7 +127,7 @@ class DaysSinceWateringSensor(BasePlantEntity):
         self._attr_unique_id = f"{entry.entry_id}_days_since_watering"
 
     @property
-    def native_value(self):
+    def state(self):
         if not self.coord.state.last_watering:
             return None
         now = datetime.now(timezone.utc)
